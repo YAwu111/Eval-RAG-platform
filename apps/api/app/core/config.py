@@ -7,11 +7,12 @@ injection instead of importing a global.
 
 from __future__ import annotations
 
+import json
 from functools import lru_cache
 from pathlib import Path
 from typing import Annotated, Literal
 
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 # apps/api/app/core/config.py -> repository root
@@ -52,14 +53,26 @@ class Settings(BaseSettings):
     @field_validator("cors_origins", mode="before")
     @classmethod
     def split_origins(cls, value: object) -> object:
-        """Allow CORS_ORIGINS to be a comma-separated string.
+        """Accept a JSON array or a comma-separated string.
 
-        pydantic-settings would otherwise expect JSON for a list field, which
-        makes .env files awkward. Accept both forms.
+        pydantic-settings JSON-decodes list fields by default; NoDecode keeps
+        the raw value so both .env styles work.
         """
-        if isinstance(value, str):
-            return [item.strip() for item in value.split(",") if item.strip()]
-        return value
+        if not isinstance(value, str):
+            return value
+        text = value.strip()
+        if text.startswith("["):
+            return json.loads(text)
+        return [item.strip() for item in text.split(",") if item.strip()]
+
+    @model_validator(mode="after")
+    def reject_dev_secrets_in_production(self) -> "Settings":
+        """Fail fast instead of booting production with the local dev DB."""
+        if self.app_env == "production" and "rag_eval_dev" in self.database_url:
+            raise ValueError(
+                "DATABASE_URL still uses the local dev password; set a real one"
+            )
+        return self
 
 
 @lru_cache

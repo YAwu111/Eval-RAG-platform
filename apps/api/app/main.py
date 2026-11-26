@@ -40,14 +40,15 @@ def create_app() -> FastAPI:
     settings = get_settings()
     configure_logging("DEBUG" if settings.app_env == "development" else "INFO")
 
+    expose_docs = settings.app_env != "production"
     app = FastAPI(
         title="TRACE // RAG Eval Workbench",
         version=settings.app_version,
         description="Knowledge chat + retrieval trace + evaluation workbench.",
         lifespan=lifespan,
-        docs_url="/api/docs",
+        docs_url="/api/docs" if expose_docs else None,
         redoc_url=None,
-        openapi_url="/api/openapi.json",
+        openapi_url="/api/openapi.json" if expose_docs else None,
     )
 
     app.add_middleware(

@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter
+from typing import Annotated
 
-from app.core.config import get_settings
+from fastapi import APIRouter, Depends
+
+from app.core.config import Settings, get_settings
 from app.schemas.health import HealthResponse
 
 router = APIRouter(tags=["health"])
@@ -14,12 +16,12 @@ router = APIRouter(tags=["health"])
     "/health",
     response_model=HealthResponse,
     summary="Liveness probe",
-    description="Returns 200 once the process can serve HTTP. Does not touch the DB.",
+    description="Returns 200 once the process can serve HTTP. Does not fail on DB issues.",
 )
-async def health() -> HealthResponse:
-    settings = get_settings()
+async def health(
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> HealthResponse:
     return HealthResponse(
         status="ok",
         version=settings.app_version,
-        env=settings.app_env,
     )

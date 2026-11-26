@@ -2,7 +2,7 @@
 
 > 单文件项目压缩上下文。给 reviewer / subagent 冷启动用：先读本文，再按需读源码。
 > 结构参考 [TokenRollAI/llmdoc](https://github.com/TokenRollAI/llmdoc) 的“知识面”思路，但本项目刻意保持一个文件。
-> 更新时间：2026-11-26 · 里程碑：M0
+> 更新时间：2026-11-26 · 里程碑：M1（API shell 已完成，DB 模型待做）
 
 ## 1. 目标
 
@@ -20,13 +20,14 @@
 | 里程碑 | 内容 | 状态 |
 |---|---|---|
 | M0 | 仓库、架构/API 文档、LLMDOC、设计定稿 | ✅ |
-| M1 | FastAPI 骨架、DB 模型、Alembic、健康检查 | ⏳ 下一个 |
+| M1-1 | FastAPI 骨架、配置、错误信封、健康检查 | ✅ `7a79d12` |
+| M1-2 | SQLAlchemy 模型、Alembic、pgvector 迁移 | ⏳ 下一个 |
 | M2 | 入库 + 稠密/稀疏检索 + RRF + 重排 | ⏳ |
 | M3 | 对话 API + 引用 + trace + 前端联调 | ⏳ |
 | M4 | 评测 runner + HF judge | ⏳ |
 | M5 | 前端三视图 + 动效 | ⏳ |
 
-**M0 没有业务代码**。不要假设 `apps/api` 或 `apps/web` 已存在。
+**M1-1 只有 HTTP shell**：`apps/api` 已存在，没有 DB 模型、service、前端。`/api/health` 返回 `db:"unknown"`；`apps/web` 尚未创建。
 
 ## 3. 目录与职责
 

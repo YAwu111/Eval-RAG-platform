@@ -46,7 +46,7 @@
 {
   "status": "ok",
   "version": "0.1.0",
-  "db": "ok",
+  "db": "unknown",
   "models": {
     "embedding": "lazy",
     "reranker": "lazy",
@@ -55,7 +55,7 @@
 }
 ```
 
-`status` 为 `ok | degraded | down`；模型字段为 `lazy | ready | failed`。
+`status` 为 `ok | degraded | down`；模型字段为 `lazy | ready | failed`。M1-2 接入数据库前 `db` 固定为 `unknown`；`/health` 只表示进程可服务，不因数据库故障返回 5xx。
 
 ### `GET /stats/overview`
 
