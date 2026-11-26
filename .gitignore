@@ -1,0 +1,50 @@
+# --- secrets / local env ---
+.env
+.env.*
+!.env.example
+
+# --- python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# --- node ---
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.tsbuildinfo
+playwright-report/
+test-results/
+
+# --- app data ---
+apps/api/data/
+apps/api/uploads/
+*.db
+*.sqlite3
+
+# --- tmp / scratch ---
+.tmp/
+.llmdoc-tmp/
+*.log
+tsconfig.tsbuildinfo
+
+# --- os / editor ---
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# --- screenshots intermediate (keep curated shots) ---
+design/screenshots/*-debug.png
+design/screenshots/probe-*.png

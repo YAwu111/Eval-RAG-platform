@@ -1,0 +1,24 @@
+name: rag-eval
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: rag-eval-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: rag_eval
+      POSTGRES_PASSWORD: rag_eval_dev
+      POSTGRES_DB: rag_eval
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - rag_eval_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rag_eval -d rag_eval"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  rag_eval_pgdata:
+    name: rag_eval_pgdata
