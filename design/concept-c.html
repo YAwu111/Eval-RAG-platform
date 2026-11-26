@@ -1,0 +1,895 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SIGNAL GARDEN — RAG EVAL WORKBENCH</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300;1,9..144,600&family=Pixelify+Sans:wght@400;500;600&family=DM+Mono:wght@300;400;500&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   SIGNAL GARDEN — knowledge as a biosphere.
+   Pixel soil, glass canopy, glowing mycelium, slow growth.
+   ============================================================ */
+:root{
+  --void:#03100c;
+  --panel:rgba(5,22,17,.72);
+  --panel-solid:#071b15;
+  --mint:#8dffb8;
+  --lime:#d9ff6a;
+  --teal:#2ee6c0;
+  --amber:#ffc46b;
+  --coral:#ff7a6b;
+  --cream:#e8f5e9;
+  --dim:#7fa894;
+  --line:rgba(141,255,184,.19);
+  --line-soft:rgba(141,255,184,.09);
+  --serif:'Fraunces',Georgia,serif;
+  --pixel:'Pixelify Sans',monospace;
+  --mono:'DM Mono',ui-monospace,monospace;
+  --sans:'Noto Sans SC',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--void);color:var(--cream);font-family:var(--sans);font-weight:300;
+  overflow:hidden;-webkit-font-smoothing:antialiased;
+}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input{font:inherit;color:inherit;background:none;border:0;outline:none}
+::selection{background:var(--mint);color:var(--void)}
+
+/* ---------- pixel world ---------- */
+#world{
+  position:fixed;inset:0;width:100%;height:100%;z-index:0;
+  image-rendering:pixelated;image-rendering:crisp-edges;
+}
+.fog{position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:
+    radial-gradient(60% 45% at 20% 20%,rgba(46,230,192,.10),transparent 70%),
+    radial-gradient(55% 45% at 82% 15%,rgba(217,255,106,.08),transparent 70%),
+    radial-gradient(70% 55% at 50% 105%,rgba(3,16,12,.95),transparent 70%);
+  animation:breathe 14s ease-in-out infinite alternate;
+}
+@keyframes breathe{to{opacity:.65;transform:scale(1.04)}}
+.vignette{position:fixed;inset:0;z-index:2;pointer-events:none;
+  background:radial-gradient(120% 100% at 50% 45%,transparent 45%,rgba(0,0,0,.55) 100%);
+}
+.fireflies{position:fixed;inset:0;z-index:3;pointer-events:none}
+.fly{position:absolute;width:3px;height:3px;background:var(--lime);border-radius:50%;
+  box-shadow:0 0 8px 2px rgba(217,255,106,.55);animation:drift linear infinite,glow 3s ease-in-out infinite}
+@keyframes drift{
+  0%{transform:translate(0,0)}
+  30%{transform:translate(38px,-46px)}
+  60%{transform:translate(-24px,-80px)}
+  100%{transform:translate(0,0)}
+}
+@keyframes glow{50%{opacity:.15;transform:scale(.6)}}
+
+/* ---------- header ---------- */
+.top{position:relative;z-index:10;height:78px;display:flex;align-items:center;padding:0 22px;gap:26px;
+  border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(3,16,12,.82),rgba(3,16,12,.28));
+  backdrop-filter:blur(14px)}
+.logo{display:flex;align-items:center;gap:12px;min-width:290px}
+.logo .mark{width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--line);border-radius:12px 2px 12px 2px;background:rgba(141,255,184,.06)}
+.logo .mark svg{image-rendering:pixelated}
+.logo h1{font-family:var(--serif);font-size:21px;font-weight:300;letter-spacing:.01em;line-height:1}
+.logo h1 em{font-style:italic;color:var(--lime)}
+.logo small{display:block;font-family:var(--mono);font-size:7px;letter-spacing:.32em;color:var(--dim);margin-top:5px}
+.nav{display:flex;gap:4px}
+.nav button{
+  font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--dim);
+  padding:9px 15px;border:1px solid transparent;border-radius:12px 2px 12px 2px;transition:.25s;
+}
+.nav button b{font-family:var(--pixel);font-weight:500;font-size:10px;margin-right:7px;color:var(--mint);opacity:.5}
+.nav button:hover{color:var(--cream);border-color:var(--line-soft);background:rgba(141,255,184,.04)}
+.nav button.on{color:var(--void);background:var(--mint);border-color:var(--mint)}
+.nav button.on b{color:var(--void);opacity:.75}
+.top-right{margin-left:auto;display:flex;align-items:center;gap:22px;font-family:var(--mono);font-size:8px;letter-spacing:.14em;color:var(--dim)}
+.top-right b{color:var(--mint);font-weight:400}
+.soil{display:flex;align-items:center;gap:7px}
+.soil i{width:4px;height:4px;background:var(--lime);border-radius:50%;box-shadow:0 0 6px var(--lime)}
+.avatar{width:30px;height:30px;border:1px solid var(--line);border-radius:10px 2px 10px 2px;display:grid;place-items:center;font-family:var(--pixel);font-size:11px;color:var(--lime);background:rgba(141,255,184,.06)}
+
+/* ---------- stage ---------- */
+.stage{position:relative;z-index:10;height:calc(100vh - 78px - 32px);padding:13px 16px 0}
+.view{height:100%;display:none}
+.view.active{display:grid;animation:bloom .55s cubic-bezier(.2,.8,.2,1) both}
+@keyframes bloom{from{opacity:0;transform:translateY(12px) scale(.995)}to{opacity:1;transform:none}}
+#view-canopy{grid-template-columns:82px minmax(0,1fr) 366px;grid-template-rows:minmax(0,1fr) 148px;gap:12px}
+.glass{
+  background:var(--panel);border:1px solid var(--line);border-radius:18px 4px 18px 4px;
+  backdrop-filter:blur(12px);position:relative;overflow:hidden;
+}
+.glass::before{content:"";position:absolute;inset:0 0 auto 0;height:1px;background:linear-gradient(90deg,transparent,rgba(141,255,184,.45),transparent);pointer-events:none}
+.glass::after{content:"";position:absolute;left:9px;bottom:9px;width:4px;height:4px;border-left:1px solid var(--line);border-bottom:1px solid var(--line);pointer-events:none}
+
+/* ---------- rail ---------- */
+.rail{grid-row:1 / 3;display:flex;flex-direction:column;align-items:center;padding:14px 0;gap:12px}
+.rail .ico{width:38px;height:38px;display:grid;place-items:center;border:1px solid var(--line-soft);border-radius:10px 2px 10px 2px;transition:.25s;color:var(--dim)}
+.rail .ico svg{width:16px;height:16px}
+.rail .ico.on{color:var(--void);background:var(--mint);border-color:var(--mint)}
+.rail .ico:hover{color:var(--mint);border-color:var(--line)}
+.vine{flex:1;width:100%;display:grid;place-items:center;position:relative;min-height:120px}
+.vine svg{height:100%;width:44px}
+.vine .leaf{transform-box:fill-box;transform-origin:center;animation:sway 6s ease-in-out infinite}
+@keyframes sway{50%{transform:rotate(7deg) translateX(1px)}}
+.rail .growth{writing-mode:vertical-rl;font-family:var(--mono);font-size:7px;letter-spacing:.3em;color:var(--dim)}
+
+/* ---------- chat ---------- */
+.chat{display:flex;flex-direction:column;min-width:0;min-height:0}
+.chat-head{height:56px;display:flex;align-items:center;padding:0 18px;gap:12px;border-bottom:1px solid var(--line-soft)}
+.chat-head .dot{width:6px;height:6px;border-radius:50%;background:var(--lime);box-shadow:0 0 10px var(--lime)}
+.chat-head h2{font-family:var(--serif);font-size:17px;font-weight:300;letter-spacing:.02em}
+.chat-head h2 em{font-style:italic;color:var(--lime)}
+.chat-head .meta{margin-left:auto;font-family:var(--mono);font-size:7px;letter-spacing:.14em;color:var(--dim);display:flex;gap:14px;align-items:center}
+.chat-head .meta b{color:var(--mint);font-weight:400}
+.chat-body{flex:1;overflow:auto;padding:18px 22px 8px;display:flex;flex-direction:column;gap:16px;scroll-behavior:smooth}
+.chat-body::-webkit-scrollbar{width:7px}
+.chat-body::-webkit-scrollbar-thumb{background:rgba(141,255,184,.18);border-radius:4px}
+.msg{display:grid;grid-template-columns:36px minmax(0,1fr);gap:12px;max-width:760px}
+.msg.user{grid-template-columns:minmax(0,1fr) 36px;align-self:flex-end}
+.msg .ava{width:32px;height:32px;border:1px solid var(--line);border-radius:11px 2px 11px 2px;display:grid;place-items:center;font-family:var(--pixel);font-size:10px;color:var(--lime);background:rgba(141,255,184,.05)}
+.msg.user .ava{grid-column:2;grid-row:1;color:var(--amber);border-color:rgba(255,196,107,.35)}
+.msg .bubble{padding:12px 15px;border:1px solid var(--line);background:rgba(7,27,21,.72);border-radius:4px 16px 16px 16px;font-size:13.5px;line-height:1.85;color:#d7ecdb}
+.msg.user .bubble{grid-column:1;grid-row:1;border-radius:16px 4px 16px 16px;background:rgba(255,196,107,.07);border-color:rgba(255,196,107,.28);color:#ffe9c8;font-size:14px}
+.msg .who{font-family:var(--mono);font-size:7px;letter-spacing:.16em;color:var(--dim);margin-bottom:6px;display:flex;gap:9px;align-items:center}
+.msg .who b{color:var(--mint);font-weight:400}
+.msg.user .who{justify-content:flex-end;color:var(--amber)}
+.msg .bubble p+p{margin-top:8px}
+.leafmark{background:rgba(217,255,106,.16);color:var(--lime);padding:0 3px;border-bottom:1px solid rgba(217,255,106,.5)}
+.cite{display:inline-block;font-family:var(--mono);font-size:9px;line-height:1.2;color:var(--lime);border:1px solid rgba(217,255,106,.45);padding:0 3px;margin-left:4px;vertical-align:2px;border-radius:3px}
+.policy{margin-top:10px;border-left:2px solid var(--teal);padding:7px 10px;background:rgba(46,230,192,.06);font-family:var(--mono);font-size:9.5px;line-height:1.75;color:#a9d9c4}
+.policy b{color:var(--teal);font-weight:400;letter-spacing:.08em}
+.msg-foot{margin-top:10px;display:flex;gap:10px;align-items:center;font-family:var(--mono);font-size:7px;letter-spacing:.12em;color:var(--dim)}
+.msg-foot .meter{flex:1;height:2px;background:var(--line-soft);position:relative}
+.msg-foot .meter::after{content:"";position:absolute;inset:0 8.6% 0 0;background:linear-gradient(90deg,var(--teal),var(--lime))}
+.suggest{display:flex;gap:7px;flex-wrap:wrap;margin-left:48px}
+.suggest button{font-family:var(--mono);font-size:8px;letter-spacing:.06em;color:var(--dim);border:1px solid var(--line-soft);border-radius:12px 3px 12px 3px;padding:5px 9px;transition:.2s}
+.suggest button:hover{color:var(--lime);border-color:var(--line);background:rgba(217,255,106,.06)}
+.grow-log{margin:4px 0 0 48px;padding-top:10px;border-top:1px dashed var(--line-soft);font-family:var(--mono);font-size:8px;line-height:1.95;color:#5d8271}
+.grow-log span{color:var(--teal);margin-right:8px}
+.composer{height:62px;border-top:1px solid var(--line-soft);display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;padding:0 14px 0 20px;gap:12px;background:rgba(3,16,12,.35)}
+.composer .field{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-size:10.5px;color:#85ab97}
+.composer .caret{width:6px;height:13px;background:var(--lime);animation:blink 1.1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+.plant-btn{display:flex;align-items:center;gap:9px;background:var(--mint);color:var(--void);font-family:var(--mono);font-size:8.5px;letter-spacing:.16em;padding:10px 15px;border-radius:14px 3px 14px 3px;transition:.2s}
+.plant-btn:hover{background:var(--lime);transform:translateY(-1px)}
+.plant-btn b{font-family:var(--pixel);font-size:12px;font-weight:500}
+
+/* ---------- roots ---------- */
+.roots{display:flex;flex-direction:column;min-height:0}
+.roots-head{height:56px;display:flex;align-items:center;padding:0 16px;border-bottom:1px solid var(--line-soft);gap:9px}
+.roots-head h3{font-family:var(--serif);font-size:15px;font-weight:300;font-style:italic}
+.roots-head .badge{margin-left:auto;font-family:var(--mono);font-size:7px;letter-spacing:.14em;color:var(--teal);border:1px solid rgba(46,230,192,.3);padding:2px 6px;border-radius:3px}
+.rootmap{flex:1;position:relative;min-height:0;padding:8px 6px 0}
+.rootmap svg{width:100%;height:100%}
+.rootmap .cap{position:absolute;left:16px;bottom:8px;font-family:var(--mono);font-size:6.5px;letter-spacing:.14em;color:#527263}
+.roots-foot{border-top:1px solid var(--line-soft);padding:11px 16px 13px;display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;font-family:var(--mono);font-size:7.5px;color:var(--dim)}
+.roots-foot div{display:flex;justify-content:space-between;border-bottom:1px dotted var(--line-soft);padding-bottom:3px}
+.roots-foot b{color:var(--cream);font-weight:400}
+.roots-foot b.hot{color:var(--lime)}
+
+/* ---------- harvest deck ---------- */
+.harvest{grid-column:2 / 4;display:flex;align-items:center;gap:0;padding:0 8px 0 18px}
+.harvest-title{width:108px;flex:none}
+.harvest-title .k{font-family:var(--mono);font-size:6.5px;letter-spacing:.24em;color:var(--dim)}
+.harvest-title h3{font-family:var(--serif);font-size:18px;font-weight:300;font-style:italic;margin-top:3px}
+.harvest-title p{font-family:var(--mono);font-size:6.5px;color:var(--dim);margin-top:4px;letter-spacing:.1em}
+.metric{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:0 6px;border-left:1px solid var(--line-soft);height:110px;justify-content:center}
+.ring{position:relative;width:66px;height:66px}
+.ring svg{transform:rotate(-90deg)}
+.ring .num{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--pixel);font-size:14px;color:var(--cream)}
+.metric .label{font-family:var(--mono);font-size:6.5px;letter-spacing:.12em;color:var(--dim);text-align:center;line-height:1.5}
+.metric .label b{display:block;color:#b7d6c3;font-weight:400;font-size:8px}
+.metric .delta{font-family:var(--mono);font-size:6.5px;color:var(--teal)}
+.metric .delta.down{color:var(--coral)}
+.composite{flex:none;width:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-left:1px solid var(--line-soft);height:110px;gap:3px}
+.composite b{font-family:var(--serif);font-size:35px;font-weight:300;color:var(--lime);line-height:1}
+.composite span{font-family:var(--mono);font-size:6px;letter-spacing:.14em;color:var(--dim);text-align:center}
+.composite span:last-child{color:var(--teal);font-size:5.8px;letter-spacing:.04em;white-space:nowrap}
+
+/* ---------- generic view headers ---------- */
+.view-head{display:flex;align-items:flex-end;justify-content:space-between;padding:20px 22px 16px}
+.view-head .k{font-family:var(--mono);font-size:7px;letter-spacing:.26em;color:var(--teal);margin-bottom:7px}
+.view-head h2{font-family:var(--serif);font-size:34px;font-weight:300;line-height:1;letter-spacing:-.01em}
+.view-head h2 em{font-style:italic;color:var(--lime)}
+.view-head .desc{font-family:var(--mono);font-size:8px;line-height:1.9;color:var(--dim);text-align:right;max-width:360px;text-shadow:0 0 6px #03100c,0 0 14px #03100c,0 0 22px #03100c}
+
+/* ---------- bloom season ---------- */
+#view-bloom{grid-template-columns:378px minmax(0,1fr);grid-template-rows:100px minmax(0,1fr) 232px;gap:12px}
+#view-bloom .view-head{grid-column:1 / 3;padding:0 8px 0 2px;align-items:center}
+.rings-panel{grid-row:2 / 4;display:flex;flex-direction:column;padding:18px 18px 14px}
+.rings-panel .panel-t{font-family:var(--mono);font-size:7px;letter-spacing:.2em;color:var(--dim);display:flex;justify-content:space-between}
+.rings-panel .panel-t b{color:var(--lime);font-weight:400}
+.rings-wrap{flex:1;display:grid;place-items:center;min-height:0;position:relative}
+.rings-wrap svg{max-height:100%;width:100%}
+.rings-wrap .center{position:absolute;text-align:center;top:50%;left:50%;transform:translate(-50%,-46%)}
+.rings-wrap .center b{font-family:var(--serif);font-size:48px;font-weight:300;line-height:1;color:var(--cream)}
+.rings-wrap .center span{display:block;font-family:var(--mono);font-size:6.5px;letter-spacing:.2em;color:var(--dim);margin-top:5px}
+.rings-legend{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;font-family:var(--mono);font-size:7.5px;color:var(--dim);border-top:1px solid var(--line-soft);padding-top:10px}
+.rings-legend div{display:flex;justify-content:space-between;align-items:center}
+.rings-legend i{width:5px;height:5px;border-radius:50%;display:inline-block;margin-right:5px}
+.rings-legend b{color:var(--cream);font-weight:400}
+.scatter{grid-column:2;display:flex;flex-direction:column;padding:16px 18px 10px;min-height:0}
+.scatter-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:7px;letter-spacing:.16em;color:var(--dim)}
+.scatter-head b{color:var(--cream);font-weight:400}
+.scatter svg{flex:1;width:100%;min-height:0;margin-top:6px}
+.dot-pass{fill:rgba(141,255,184,.55)}
+.dot-warn{fill:var(--amber)}
+.dot-fail{fill:var(--coral)}
+.cases{grid-column:2;padding:12px 16px 14px;overflow:hidden}
+.cases-head{display:flex;justify-content:space-between;font-family:var(--mono);font-size:7px;letter-spacing:.16em;color:var(--dim);margin-bottom:8px}
+.cases-head b{color:var(--coral);font-weight:400}
+table{width:100%;border-collapse:collapse}
+th{font-family:var(--mono);font-size:6.5px;letter-spacing:.14em;color:var(--dim);text-align:left;font-weight:400;padding:4px 6px;border-bottom:1px solid var(--line)}
+td{font-size:11px;padding:6px;border-bottom:1px solid var(--line-soft);color:#c8e3d1}
+td.num{font-family:var(--mono);font-size:8.5px}
+.pill{font-family:var(--mono);font-size:6.5px;letter-spacing:.1em;padding:2px 5px;border:1px solid;border-radius:3px}
+.pill.pass{color:var(--mint);border-color:rgba(141,255,184,.35)}
+.pill.warn{color:var(--amber);border-color:rgba(255,196,107,.35)}
+.pill.fail{color:var(--coral);border-color:rgba(255,122,107,.45)}
+
+/* ---------- seed vault ---------- */
+#view-vault{grid-template-columns:minmax(0,1fr) 318px;grid-template-rows:100px minmax(0,1fr);gap:12px}
+#view-vault .view-head{grid-column:1 / 3}
+.vault-main{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-content:start;overflow:auto;padding-right:2px}
+.seed{padding:13px 14px;display:flex;flex-direction:column;gap:9px;transition:.25s}
+.seed:hover{border-color:rgba(141,255,184,.45);transform:translateY(-2px);box-shadow:0 12px 34px -18px rgba(141,255,184,.5)}
+.seed-top{display:flex;justify-content:space-between;align-items:flex-start}
+.seed-top .id{font-family:var(--mono);font-size:6.5px;letter-spacing:.14em;color:var(--dim)}
+.seed-top .state{font-family:var(--mono);font-size:6px;letter-spacing:.06em;padding:2px 4px;border:1px solid var(--line);color:var(--mint);border-radius:3px;white-space:nowrap}
+.seed-top .state.q{color:var(--amber);border-color:rgba(255,196,107,.4)}
+.seed .sprout{height:44px;display:flex;align-items:flex-end;gap:2px}
+.seed .sprout i{width:5px;background:var(--line-soft);border-radius:1px}
+.seed .sprout i.on{background:linear-gradient(180deg,var(--lime),rgba(217,255,106,.18))}
+.seed h3{font-size:13px;font-weight:500;line-height:1.45;color:#e2f4e6}
+.seed .sub{font-family:var(--mono);font-size:7px;color:var(--dim);letter-spacing:.06em}
+.seed .bar{height:2px;background:var(--line-soft);position:relative}
+.seed .bar::after{content:"";position:absolute;inset:0 auto 0 0;width:var(--w);background:var(--teal)}
+.seed .foot{display:flex;justify-content:space-between;font-family:var(--mono);font-size:6.5px;color:var(--dim)}
+.seed .foot b{color:var(--lime);font-weight:400}
+.browse{grid-column:1 / -1;display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border:1px dashed var(--line);border-radius:14px 3px 14px 3px;font-family:var(--mono);font-size:8px;letter-spacing:.12em;color:var(--dim);margin-top:2px;transition:.2s}
+.browse b{color:var(--lime);font-weight:400}
+.browse:hover{border-color:rgba(141,255,184,.4);background:rgba(141,255,184,.04);color:var(--cream)}
+.vault-side{display:flex;flex-direction:column;gap:12px;min-height:0}
+.soil-panel{padding:15px 16px}
+.soil-panel h3{font-family:var(--serif);font-size:16px;font-weight:300;font-style:italic;margin-bottom:10px}
+.gauge-row{display:flex;justify-content:space-between;font-family:var(--mono);font-size:7.5px;color:var(--dim);margin-top:10px}
+.gauge-row b{color:var(--cream);font-weight:400}
+.soil-bar{height:5px;background:var(--line-soft);margin-top:5px;position:relative;border-radius:3px;overflow:hidden}
+.soil-bar i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--teal),var(--lime))}
+.queue{padding:15px 16px;flex:0 0 auto}
+.queue h3{font-family:var(--serif);font-size:16px;font-weight:300;font-style:italic;margin-bottom:9px}
+.q-row{display:grid;grid-template-columns:1fr auto;gap:6px;padding:8px 0;border-bottom:1px dotted var(--line-soft);font-family:var(--mono);font-size:8px;color:#b5d3c0}
+.q-row .m{font-size:6.5px;color:var(--dim);margin-top:3px}
+.q-row .p{color:var(--lime)}
+.q-row .p.done{color:var(--teal)}
+
+/* ---------- baseline ---------- */
+.base{position:relative;z-index:10;height:32px;display:flex;align-items:center;gap:20px;padding:0 22px;
+  font-family:var(--mono);font-size:6.5px;letter-spacing:.18em;color:#5f8271;
+  border-top:1px solid var(--line-soft);background:rgba(3,16,12,.75)}
+.base b{color:var(--mint);font-weight:400}
+.base .right{margin-left:auto;display:flex;gap:20px;align-items:center}
+.base .live{color:var(--lime)}
+.base .live::before{content:"";display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--lime);margin-right:5px;vertical-align:1px;animation:blink 2s infinite}
+
+/* ---------- responsive ---------- */
+@media(max-width:1240px){
+  #view-canopy{grid-template-columns:70px minmax(0,1fr) 310px}
+  .harvest-title{width:90px}
+  #view-bloom{grid-template-columns:330px minmax(0,1fr)}
+}
+@media(max-width:980px){
+  body{overflow:auto}
+  .top{height:auto;flex-wrap:wrap;padding:12px 16px;gap:10px}
+  .logo{min-width:0}
+  .nav{order:3;width:100%;overflow:auto}
+  .stage{height:auto;min-height:calc(100vh - 110px)}
+  #view-canopy{grid-template-columns:1fr;grid-template-rows:auto}
+  .rail{display:none}
+  .roots{display:none}
+  .harvest{grid-column:1;flex-wrap:wrap;height:auto;padding:10px}
+  .metric{border-left:0;height:auto}
+  #view-bloom,#view-vault{grid-template-columns:1fr;grid-template-rows:auto}
+  .rings-panel{grid-row:auto}
+  .scatter,.cases,.vault-main,.vault-side{grid-column:1}
+  .vault-main{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .view.active{overflow:auto}
+  .base{flex-wrap:wrap;height:auto;padding:8px 16px}
+}
+@media(max-width:640px){
+  .vault-main{grid-template-columns:1fr}
+  .view-head h2{font-size:26px}
+}
+</style>
+</head>
+<body>
+<canvas id="world" width="480" height="300" aria-hidden="true"></canvas>
+<div class="fog"></div>
+<div class="vignette"></div>
+<div class="fireflies" id="flies"></div>
+
+<header class="top">
+  <div class="logo">
+    <div class="mark">
+      <svg width="20" height="20" viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true">
+        <rect x="4" y="5" width="2" height="4" fill="#8dffb8"/>
+        <rect x="3" y="7" width="1" height="1" fill="#8dffb8"/><rect x="6" y="6" width="1" height="1" fill="#8dffb8"/>
+        <rect x="2" y="4" width="2" height="1" fill="#d9ff6a"/><rect x="6" y="3" width="2" height="2" fill="#d9ff6a"/>
+      </svg>
+    </div>
+    <div>
+      <h1>Signal <em>Garden</em></h1>
+      <small>RAG EVAL WORKBENCH · BIOSPHERE 07</small>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <button class="on" data-view="canopy"><b>01</b>CANOPY</button>
+    <button data-view="vault"><b>02</b>SEED VAULT</button>
+    <button data-view="bloom"><b>03</b>BLOOM SEASON</button>
+  </nav>
+
+  <div class="top-right">
+    <span class="soil"><i></i>SOIL <b>pH 7.2</b></span>
+    <span>INDEX <b>48,219</b></span>
+    <span>SPECIES <b>12</b></span>
+    <div class="avatar">sg</div>
+  </div>
+</header>
+
+<main class="stage">
+  <!-- ============ CANOPY ============ -->
+  <section class="view active" id="view-canopy">
+    <aside class="rail glass">
+      <button class="ico on" data-view="canopy" aria-label="canopy">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2 13h12M4 13V8m4 5V5m4 8V9"/><circle cx="8" cy="3" r="1.5" fill="currentColor" stroke="none"/></svg>
+      </button>
+      <button class="ico" data-view="vault" aria-label="vault">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="3" width="10" height="10" rx="1.5"/><path d="M6 6h4M6 9h4"/></svg>
+      </button>
+      <button class="ico" data-view="bloom" aria-label="bloom">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="8" cy="8" r="5.5"/><path d="M8 2.5v11M2.5 8h11"/></svg>
+      </button>
+      <div class="vine">
+        <svg viewBox="0 0 44 700" shape-rendering="crispEdges" aria-hidden="true" id="vine">
+          <!-- main stem -->
+          <rect x="21" y="10" width="2" height="670" fill="#1d5a41"/>
+          <rect x="20" y="120" width="4" height="130" fill="#164a36"/>
+          <rect x="20" y="380" width="4" height="120" fill="#164a36"/>
+
+          <!-- branches + leaves, alternating sides -->
+          <g class="leaf"><rect x="13" y="46" width="9" height="5" fill="#2ee6c0"/><rect x="8" y="42" width="7" height="4" fill="#8dffb8"/><rect x="4" y="46" width="5" height="3" fill="#d9ff6a"/></g>
+          <g class="leaf" style="animation-delay:-2s"><rect x="23" y="104" width="10" height="5" fill="#8dffb8"/><rect x="31" y="99" width="6" height="5" fill="#d9ff6a"/></g>
+          <g class="leaf" style="animation-delay:-4s"><rect x="12" y="176" width="10" height="5" fill="#2ee6c0"/><rect x="6" y="171" width="7" height="5" fill="#8dffb8"/></g>
+          <g class="leaf" style="animation-delay:-1s"><rect x="23" y="238" width="9" height="4" fill="#d9ff6a"/><rect x="31" y="234" width="5" height="4" fill="#2ee6c0"/></g>
+          <g class="leaf" style="animation-delay:-3s"><rect x="14" y="300" width="9" height="4" fill="#8dffb8"/><rect x="8" y="296" width="6" height="4" fill="#d9ff6a"/></g>
+          <g class="leaf" style="animation-delay:-5s"><rect x="23" y="360" width="11" height="5" fill="#2ee6c0"/><rect x="32" y="355" width="6" height="5" fill="#8dffb8"/></g>
+          <g class="leaf" style="animation-delay:-1.5s"><rect x="12" y="424" width="10" height="4" fill="#d9ff6a"/><rect x="5" y="420" width="7" height="4" fill="#8dffb8"/></g>
+          <g class="leaf" style="animation-delay:-3.5s"><rect x="23" y="488" width="9" height="4" fill="#8dffb8"/><rect x="31" y="484" width="5" height="4" fill="#2ee6c0"/></g>
+          <g class="leaf" style="animation-delay:-2.5s"><rect x="12" y="552" width="10" height="5" fill="#2ee6c0"/><rect x="5" y="547" width="7" height="5" fill="#d9ff6a"/></g>
+          <g class="leaf" style="animation-delay:-4.5s"><rect x="23" y="612" width="10" height="5" fill="#d9ff6a"/><rect x="31" y="607" width="6" height="5" fill="#8dffb8"/></g>
+
+          <!-- spores -->
+          <rect x="9" y="146" width="2" height="2" fill="#ffc46b" opacity=".85"/>
+          <rect x="35" y="282" width="2" height="2" fill="#ffc46b" opacity=".7"/>
+          <rect x="7" y="518" width="2" height="2" fill="#ffc46b" opacity=".8"/>
+          <rect x="34" y="580" width="2" height="2" fill="#ffc46b" opacity=".6"/>
+
+          <!-- flower at the base -->
+          <rect x="19" y="650" width="6" height="6" fill="#ffc46b"/>
+          <rect x="17" y="654" width="10" height="3" fill="#ffc46b"/>
+          <rect x="21" y="646" width="2" height="4" fill="#d9ff6a"/>
+          <rect x="15" y="649" width="4" height="2" fill="#8dffb8"/>
+          <rect x="25" y="649" width="4" height="2" fill="#8dffb8"/>
+        </svg>
+      </div>
+      <div class="growth">GROWTH 0.839 · DAY 128</div>
+    </aside>
+
+    <div class="chat glass">
+      <div class="chat-head">
+        <span class="dot"></span>
+        <h2>Canopy <em>/ 冠层对话</em></h2>
+        <div class="meta"><span>SESSION <b>07F</b></span><span>QWEN2.5-72B</span><span><b>6</b> SEEDS</span></div>
+      </div>
+
+      <div class="chat-body">
+        <article class="msg user">
+          <div class="ava">you</div>
+          <div class="bubble">
+            <div class="who">OPERATOR · 21:14</div>
+            先给我一句话结论：混合检索和重排序到底谁在起作用？
+          </div>
+        </article>
+
+        <article class="msg">
+          <div class="ava">
+            <svg width="16" height="16" viewBox="0 0 10 8" shape-rendering="crispEdges"><rect x="4" y="2" width="2" height="4" fill="#8dffb8"/><rect x="1" y="2" width="3" height="2" fill="#d9ff6a"/><rect x="6" y="2" width="3" height="2" fill="#d9ff6a"/><rect x="2" y="1" width="2" height="1" fill="#2ee6c0"/><rect x="6" y="1" width="2" height="1" fill="#2ee6c0"/></svg>
+          </div>
+          <div class="bubble">
+            <div class="who"><b>GARDEN</b> · GROUNDED · 3 SEEDS</div>
+            <p>一句话：混合检索负责把答案<span class="leafmark">捞上来</span>，reranker 负责把它<span class="leafmark">排到最前面</span>。前者决定召回上限，后者决定你实际看到的顺序。<span class="cite">1</span></p>
+            <div class="msg-foot"><span>ROOTED</span><span class="meter"></span><span>0.914</span></div>
+          </div>
+        </article>
+
+        <article class="msg user">
+          <div class="ava">you</div>
+          <div class="bubble">当 BM25 和向量召回给出相互冲突的证据时，reranker 如何权衡？</div>
+        </article>
+
+        <article class="msg">
+          <div class="ava">
+            <svg width="16" height="16" viewBox="0 0 10 8" shape-rendering="crispEdges"><rect x="4" y="2" width="2" height="4" fill="#8dffb8"/><rect x="1" y="2" width="3" height="2" fill="#d9ff6a"/><rect x="6" y="2" width="3" height="2" fill="#d9ff6a"/><rect x="2" y="1" width="2" height="1" fill="#2ee6c0"/><rect x="6" y="1" width="2" height="1" fill="#2ee6c0"/></svg>
+          </div>
+          <div class="bubble">
+            <div class="who"><b>GARDEN</b> · GROUNDED · 6 SEEDS</div>
+            <p>它不做加权平均。RRF 只融合两路召回的<span class="leafmark">排名</span>，把候选送进 cross-encoder 后，query 与每个 chunk 拼接打分，最终顺序由这个校准分数决定<span class="cite">2</span>。关键词命中但语义跑偏的片段会被压低；语义正确却缺关键词的片段会被拉回来。</p>
+            <div class="policy"><b>§4.3 / FUSION POLICY</b> — RRF 的 k 取 60；融合仅用于候选池构建，不参与最终排序。冲突样本以 rerank 分数为准，保留 top-6 进入上下文。</div>
+            <p>线上配置是 BM25 24 + Dense 24 → RRF → rerank 6。这套配置在 Q4 消融里把 Context Precision 拉高了 0.11，但延迟增加 24ms<span class="cite">3</span>。</p>
+            <div class="msg-foot"><span>ROOTED</span><span class="meter"></span><span>0.914</span></div>
+            <div class="suggest">
+              <button>对比纯向量检索</button>
+              <button>看原始打分</button>
+              <button>导出消融摘要</button>
+            </div>
+          </div>
+        </article>
+
+      </div>
+
+      <div class="composer">
+        <div class="field"><span>种下一个问题…</span><span class="caret"></span></div>
+        <button class="plant-btn">PLANT <b>↵</b></button>
+      </div>
+    </div>
+
+    <aside class="roots glass">
+      <div class="roots-head">
+        <h3>Root trace</h3>
+        <span class="badge">LIVE · 27MS</span>
+      </div>
+      <div class="rootmap">
+        <svg viewBox="0 0 340 430" fill="none" aria-hidden="true">
+          <defs>
+            <filter id="glow"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <radialGradient id="seedg"><stop offset="0" stop-color="#d9ff6a" stop-opacity=".9"/><stop offset="1" stop-color="#8dffb8" stop-opacity="0"/></radialGradient>
+          </defs>
+
+          <!-- query node -->
+          <circle cx="170" cy="34" r="20" fill="url(#seedg)" opacity=".8"/>
+          <rect x="162" y="26" width="16" height="16" rx="4" fill="#d9ff6a"/>
+          <text x="170" y="66" text-anchor="middle" font-family="DM Mono" font-size="7" letter-spacing="1.4" fill="#d9ff6a">QUERY</text>
+
+          <!-- roots -->
+          <g stroke="#2ee6c0" stroke-width="1.1" opacity=".75">
+            <path class="root" d="M170 50 C140 80 96 86 66 122"/>
+            <path class="root" style="animation-delay:-1.2s" d="M170 50 C210 82 258 78 282 118"/>
+            <path class="root" style="animation-delay:-2.1s" d="M170 50 C128 116 76 142 44 196"/>
+            <path class="root" style="animation-delay:-.6s" d="M170 50 C222 116 286 132 300 198"/>
+            <path class="root" style="animation-delay:-3s" d="M170 50 C146 170 86 214 72 296"/>
+            <path class="root" style="animation-delay:-1.8s" d="M170 50 C206 174 264 224 272 298"/>
+          </g>
+
+          <!-- seeds -->
+          <g font-family="DM Mono" font-size="7.5" fill="#b7d6c3">
+            <g><circle cx="66" cy="122" r="10" fill="#8dffb8" opacity=".12"/><circle cx="66" cy="122" r="4.5" fill="#8dffb8"/><text x="66" y="146" text-anchor="middle">SPEC v3.2 · .947</text></g>
+            <g><circle cx="282" cy="118" r="9" fill="#8dffb8" opacity=".1"/><circle cx="282" cy="118" r="4" fill="#8dffb8"/><text x="282" y="142" text-anchor="middle">RERANK README · .882</text></g>
+            <g><circle cx="44" cy="196" r="8" fill="#8dffb8" opacity=".1"/><circle cx="44" cy="196" r="3.5" fill="#8dffb8"/><text x="44" y="218" text-anchor="middle">EXP-07 · .811</text></g>
+            <g><circle cx="300" cy="198" r="7" fill="#8dffb8" opacity=".1"/><circle cx="300" cy="198" r="3.2" fill="#8dffb8"/><text x="300" y="220" text-anchor="middle">CHUNK 4822 · .764</text></g>
+            <g><circle cx="72" cy="296" r="6" fill="#8dffb8" opacity=".1"/><circle cx="72" cy="296" r="3" fill="#2ee6c0"/><text x="72" y="316" text-anchor="middle">FAQ · .702</text></g>
+            <g><circle cx="272" cy="298" r="5" fill="#8dffb8" opacity=".1"/><circle cx="272" cy="298" r="2.6" fill="#2ee6c0"/><text x="272" y="318" text-anchor="middle">SOP · .688</text></g>
+          </g>
+
+          <!-- soil layer: what the roots rejected -->
+          <line x1="18" y1="342" x2="322" y2="342" stroke="#1d5a41" stroke-dasharray="2 5"/>
+          <text x="170" y="362" text-anchor="middle" font-family="DM Mono" font-size="7" letter-spacing="1.6" fill="#527263">SOIL LAYER · 6 BOUND / 42 REJECTED</text>
+          <g fill="#143d2d">
+            <rect x="44" y="382" width="2" height="2"/><rect x="78" y="398" width="2" height="2"/><rect x="126" y="376" width="2" height="2"/><rect x="164" y="406" width="2" height="2"/><rect x="206" y="386" width="2" height="2"/><rect x="248" y="402" width="2" height="2"/><rect x="292" y="378" width="2" height="2"/><rect x="306" y="412" width="2" height="2"/>
+          </g>
+          <g stroke="#1d5a41" stroke-width="1" opacity=".8" fill="none">
+            <path d="M72 318 C68 336 58 354 52 386"/>
+            <path d="M272 318 C278 340 288 356 294 390"/>
+            <path d="M170 318 C170 344 166 366 170 398"/>
+          </g>
+        </svg>
+        <div class="cap">MYCELIUM / BM25 24 + DENSE 24 → RRF 60 → 6</div>
+      </div>
+      <div class="roots-foot">
+        <div><span>Rewrites</span><b>2</b></div>
+        <div><span>Candidates</span><b>48</b></div>
+        <div><span>Reranked</span><b>6</b></div>
+        <div><span>Latency</span><b class="hot">27ms</b></div>
+      </div>
+    </aside>
+
+    <div class="harvest glass">
+      <div class="harvest-title">
+        <div class="k">HARVEST / 128</div>
+        <h3>Today's yield</h3>
+        <p>RUN 042 · 6M 42S</p>
+      </div>
+
+      <div class="metric">
+        <div class="ring"><svg width="66" height="66" viewBox="0 0 66 66"><circle cx="33" cy="33" r="27" stroke="rgba(141,255,184,.13)" stroke-width="4" fill="none"/><circle class="arc" cx="33" cy="33" r="27" stroke="#8dffb8" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="21.5" data-off="21.5"/></svg><span class="num">0.873</span></div>
+        <div class="label">HIT@5<b>前五命中</b></div><div class="delta">▲ .021</div>
+      </div>
+      <div class="metric">
+        <div class="ring"><svg width="66" height="66" viewBox="0 0 66 66"><circle cx="33" cy="33" r="27" stroke="rgba(141,255,184,.13)" stroke-width="4" fill="none"/><circle class="arc" cx="33" cy="33" r="27" stroke="#2ee6c0" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="43.8" data-off="43.8"/></svg><span class="num">0.742</span></div>
+        <div class="label">MRR<b>倒数排名</b></div><div class="delta">▲ .008</div>
+      </div>
+      <div class="metric">
+        <div class="ring"><svg width="66" height="66" viewBox="0 0 66 66"><circle cx="33" cy="33" r="27" stroke="rgba(141,255,184,.13)" stroke-width="4" fill="none"/><circle class="arc" cx="33" cy="33" r="27" stroke="#d9ff6a" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="54.1" data-off="54.1"/></svg><span class="num">0.681</span></div>
+        <div class="label">CTX P<b>上下文精度</b></div><div class="delta down">▼ .014</div>
+      </div>
+      <div class="metric">
+        <div class="ring"><svg width="66" height="66" viewBox="0 0 66 66"><circle cx="33" cy="33" r="27" stroke="rgba(141,255,184,.13)" stroke-width="4" fill="none"/><circle class="arc" cx="33" cy="33" r="27" stroke="#ffc46b" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="14.6" data-off="14.6"/></svg><span class="num">0.914</span></div>
+        <div class="label">FAITH<b>忠实度</b></div><div class="delta">▲ .006</div>
+      </div>
+      <div class="metric">
+        <div class="ring"><svg width="66" height="66" viewBox="0 0 66 66"><circle cx="33" cy="33" r="27" stroke="rgba(141,255,184,.13)" stroke-width="4" fill="none"/><circle class="arc" cx="33" cy="33" r="27" stroke="#ff9e8f" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="19.2" data-off="19.2"/></svg><span class="num">0.887</span></div>
+        <div class="label">REL<b>答案相关</b></div><div class="delta">▲ .003</div>
+      </div>
+
+      <div class="composite">
+        <b>0.839</b>
+        <span>COMPOSITE BLOOM</span>
+        <span style="color:var(--teal)">119 PASS · 7 WARN · 2 FAIL</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SEED VAULT ============ -->
+  <section class="view" id="view-vault">
+    <div class="view-head">
+      <div>
+        <div class="k">SEED VAULT · 12 COLLECTIONS / 96 SPECIES</div>
+        <h2>Seed <em>vault</em> / 种子库</h2>
+      </div>
+      <div class="desc">每个文档是一粒种子：切分、向量化、发芽。<br>48,219 chunks · 612 MB · BGE-M3 1024d</div>
+    </div>
+
+    <div class="vault-main">
+      <article class="seed glass">
+        <div class="seed-top"><span class="id">SD-001 / PDF</span><span class="state">SPROUTED</span></div>
+        <div class="sprout"><i class="on" style="height:32%"></i><i class="on" style="height:58%"></i><i class="on" style="height:44%"></i><i class="on" style="height:76%"></i><i class="on" style="height:92%"></i><i class="on" style="height:61%"></i><i style="height:38%"></i><i style="height:22%"></i></div>
+        <h3>混合检索设计规范 v3.2</h3>
+        <div class="sub">128 CHUNKS · 42 PAGES · 12M AGO</div>
+        <div class="bar" style="--w:91%"></div>
+        <div class="foot"><span>HIT@5 <b>0.91</b></span><span>ROOTED</span></div>
+      </article>
+
+      <article class="seed glass">
+        <div class="seed-top"><span class="id">SD-002 / MD</span><span class="state">SPROUTED</span></div>
+        <div class="sprout"><i class="on" style="height:22%"></i><i class="on" style="height:41%"></i><i class="on" style="height:63%"></i><i class="on" style="height:48%"></i><i class="on" style="height:84%"></i><i class="on" style="height:57%"></i><i class="on" style="height:33%"></i><i style="height:19%"></i></div>
+        <h3>rerank-service / README.md</h3>
+        <div class="sub">34 CHUNKS · 11 PAGES · 1H AGO</div>
+        <div class="bar" style="--w:84%"></div>
+        <div class="foot"><span>HIT@5 <b>0.84</b></span><span>ROOTED</span></div>
+      </article>
+
+      <article class="seed glass">
+        <div class="seed-top"><span class="id">SD-003 / XLSX</span><span class="state">SPROUTED</span></div>
+        <div class="sprout"><i class="on" style="height:37%"></i><i class="on" style="height:52%"></i><i class="on" style="height:31%"></i><i class="on" style="height:70%"></i><i class="on" style="height:88%"></i><i class="on" style="height:54%"></i><i style="height:36%"></i><i style="height:24%"></i></div>
+        <h3>2024-Q4 检索消融实验</h3>
+        <div class="sub">76 CHUNKS · 19 PAGES · 3H AGO</div>
+        <div class="bar" style="--w:78%"></div>
+        <div class="foot"><span>HIT@5 <b>0.78</b></span><span>ROOTED</span></div>
+      </article>
+
+      <article class="seed glass">
+        <div class="seed-top"><span class="id">SD-004 / PDF</span><span class="state q">GERMINATING</span></div>
+        <div class="sprout"><i class="on" style="height:18%"></i><i class="on" style="height:30%"></i><i style="height:42%"></i><i style="height:27%"></i><i style="height:15%"></i><i style="height:9%"></i><i style="height:5%"></i><i style="height:3%"></i></div>
+        <h3>客服 SOP / 退换货与赔付</h3>
+        <div class="sub">219 CHUNKS · 63 PAGES · PENDING</div>
+        <div class="bar" style="--w:62%"></div>
+        <div class="foot"><span>INDEXING <b>62%</b></span><span>1H 24M</span></div>
+      </article>
+
+      <article class="seed glass">
+        <div class="seed-top"><span class="id">SD-005 / PDF</span><span class="state">SPROUTED</span></div>
+        <div class="sprout"><i class="on" style="height:29%"></i><i class="on" style="height:47%"></i><i class="on" style="height:66%"></i><i class="on" style="height:52%"></i><i class="on" style="height:79%"></i><i class="on" style="height:44%"></i><i class="on" style="height:28%"></i><i style="height:18%"></i></div>
+        <h3>数据合规白皮书 2025</h3>
+        <div class="sub">154 CHUNKS · 88 PAGES · 1D AGO</div>
+        <div class="bar" style="--w:73%"></div>
+        <div class="foot"><span>HIT@5 <b>0.73</b></span><span>ROOTED</span></div>
+      </article>
+
+      <article class="seed glass">
+        <div class="seed-top"><span class="id">SD-006 / HTML</span><span class="state">SPROUTED</span></div>
+        <div class="sprout"><i class="on" style="height:35%"></i><i class="on" style="height:57%"></i><i class="on" style="height:42%"></i><i class="on" style="height:68%"></i><i class="on" style="height:51%"></i><i class="on" style="height:83%"></i><i style="height:39%"></i><i style="height:25%"></i></div>
+        <h3>API 网关接入手册</h3>
+        <div class="sub">92 CHUNKS · 34 PAGES · 2D AGO</div>
+        <div class="bar" style="--w:81%"></div>
+        <div class="foot"><span>HIT@5 <b>0.81</b></span><span>ROOTED</span></div>
+      </article>
+
+      <article class="seed glass">
+        <div class="seed-top"><span class="id">SD-007 / PDF</span><span class="state">SPROUTED</span></div>
+        <div class="sprout"><i class="on" style="height:26%"></i><i class="on" style="height:44%"></i><i class="on" style="height:61%"></i><i class="on" style="height:38%"></i><i class="on" style="height:72%"></i><i class="on" style="height:49%"></i><i class="on" style="height:31%"></i><i style="height:20%"></i></div>
+        <h3>Q3 客服工单归因分析</h3>
+        <div class="sub">88 CHUNKS · 27 PAGES · 3D AGO</div>
+        <div class="bar" style="--w:76%"></div>
+        <div class="foot"><span>HIT@5 <b>0.76</b></span><span>ROOTED</span></div>
+      </article>
+
+      <article class="seed glass">
+        <div class="seed-top"><span class="id">SD-008 / MD</span><span class="state">SPROUTED</span></div>
+        <div class="sprout"><i class="on" style="height:33%"></i><i class="on" style="height:51%"></i><i class="on" style="height:69%"></i><i class="on" style="height:45%"></i><i class="on" style="height:86%"></i><i class="on" style="height:64%"></i><i class="on" style="height:39%"></i><i style="height:22%"></i></div>
+        <h3>向量索引运维手册</h3>
+        <div class="sub">46 CHUNKS · 14 PAGES · 4D AGO</div>
+        <div class="bar" style="--w:80%"></div>
+        <div class="foot"><span>HIT@5 <b>0.80</b></span><span>ROOTED</span></div>
+      </article>
+
+      <article class="seed glass">
+        <div class="seed-top"><span class="id">SD-009 / JSONL</span><span class="state">SPROUTED</span></div>
+        <div class="sprout"><i class="on" style="height:41%"></i><i class="on" style="height:58%"></i><i class="on" style="height:77%"></i><i class="on" style="height:63%"></i><i class="on" style="height:94%"></i><i class="on" style="height:71%"></i><i class="on" style="height:48%"></i><i style="height:27%"></i></div>
+        <h3>评测集 Golden-128 说明</h3>
+        <div class="sub">128 CHUNKS · 4 PAGES · 5D AGO</div>
+        <div class="bar" style="--w:95%"></div>
+        <div class="foot"><span>HIT@5 <b>0.95</b></span><span>ROOTED</span></div>
+      </article>
+
+      <div class="browse"><span>96 SPECIES IN SOIL · 87 NOT SHOWN</span><b>VIEW ALL SPECIES →</b></div>
+    </div>
+
+    <aside class="vault-side">
+      <div class="soil-panel glass">
+        <h3>Soil conditions</h3>
+        <div class="gauge-row"><span>MOISTURE / 湿度</span><b>62%</b></div>
+        <div class="soil-bar"><i style="width:62%"></i></div>
+        <div class="gauge-row"><span>NUTRIENTS / 覆盖</span><b>88%</b></div>
+        <div class="soil-bar"><i style="width:88%"></i></div>
+        <div class="gauge-row"><span>DUPLICATE / 重复率</span><b>0.7%</b></div>
+        <div class="soil-bar"><i style="width:7%"></i></div>
+      </div>
+
+      <div class="queue glass">
+        <h3>Germination queue</h3>
+        <div class="q-row"><div><div>客服 SOP / 退换货</div><div class="m">219 CHUNKS · 1H 24M LEFT</div></div><div class="p">62%</div></div>
+        <div class="q-row"><div><div>财务共享中心 FAQ</div><div class="m">EMBEDDING 41 / 148</div></div><div class="p">28%</div></div>
+        <div class="q-row"><div><div>合规框架 2025</div><div class="m">128 CHUNKS · VERIFIED</div></div><div class="p done">DONE</div></div>
+        <div class="q-row" style="border-bottom:0"><div><div>Duplicate scan</div><div class="m">0.7% OVERLAP</div></div><div class="p done">CLEAR</div></div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ============ BLOOM SEASON ============ -->
+  <section class="view" id="view-bloom">
+    <div class="view-head">
+      <div>
+        <div class="k">BLOOM SEASON · RUN 042 / GOLDEN-128</div>
+        <h2>Bloom <em>season</em> / 花期评测</h2>
+      </div>
+      <div class="desc">同一套 128 条评测集，同时量检索与生成。<br>0.839 composite · 6m42s · 119 pass / 7 warn / 2 fail</div>
+    </div>
+
+    <div class="rings-panel glass">
+      <div class="panel-t"><span>COMPOSITE BLOOM</span><b>+0.014 VS 041</b></div>
+      <div class="rings-wrap">
+        <svg viewBox="0 0 360 360" fill="none" id="bigRings">
+          <circle cx="180" cy="180" r="150" stroke="rgba(141,255,184,.08)" stroke-width="1"/>
+          <circle cx="180" cy="180" r="120" stroke="rgba(141,255,184,.08)" stroke-width="1"/>
+          <circle cx="180" cy="180" r="90" stroke="rgba(141,255,184,.08)" stroke-width="1"/>
+          <circle cx="180" cy="180" r="60" stroke="rgba(141,255,184,.08)" stroke-width="1"/>
+          <g transform="rotate(-90 180 180)">
+            <circle class="barc" cx="180" cy="180" r="140" stroke="#8dffb8" stroke-width="7" stroke-linecap="round" stroke-dasharray="879" stroke-dashoffset="879" data-final="111.5" opacity=".95"/>
+            <circle class="barc" cx="180" cy="180" r="116" stroke="#2ee6c0" stroke-width="7" stroke-linecap="round" stroke-dasharray="729" stroke-dashoffset="729" data-final="188" opacity=".95"/>
+            <circle class="barc" cx="180" cy="180" r="92" stroke="#d9ff6a" stroke-width="7" stroke-linecap="round" stroke-dasharray="578" stroke-dashoffset="578" data-final="184.4" opacity=".95"/>
+            <circle class="barc" cx="180" cy="180" r="68" stroke="#ffc46b" stroke-width="7" stroke-linecap="round" stroke-dasharray="427" stroke-dashoffset="427" data-final="36.7" opacity=".95"/>
+            <circle class="barc" cx="180" cy="180" r="44" stroke="#ff9e8f" stroke-width="7" stroke-linecap="round" stroke-dasharray="276" stroke-dashoffset="276" data-final="31.2" opacity=".95"/>
+          </g>
+        </svg>
+        <div class="center"><b>0.839</b><span>WEIGHTED BLOOM</span></div>
+      </div>
+      <div class="rings-legend">
+        <div><span><i style="background:#8dffb8"></i>HIT@5</span><b>0.873</b></div>
+        <div><span><i style="background:#2ee6c0"></i>MRR</span><b>0.742</b></div>
+        <div><span><i style="background:#d9ff6a"></i>CTX P</span><b>0.681</b></div>
+        <div><span><i style="background:#ffc46b"></i>FAITH</span><b>0.914</b></div>
+        <div><span><i style="background:#ff9e8f"></i>ANSWER REL</span><b>0.887</b></div>
+        <div><span><i style="background:rgba(141,255,184,.3)"></i>THRESHOLD</span><b>0.70</b></div>
+      </div>
+    </div>
+
+    <div class="scatter glass">
+      <div class="scatter-head"><span>CASE CONSTELLATION / 128 BLOOMS</span><span><b>X</b> SCORE · <b>Y</b> FAITHFULNESS</span></div>
+      <svg viewBox="0 0 640 300" id="scatter" aria-hidden="true">
+        <line x1="44" y1="20" x2="44" y2="262" stroke="rgba(141,255,184,.16)"/>
+        <line x1="44" y1="262" x2="620" y2="262" stroke="rgba(141,255,184,.16)"/>
+        <line x1="443" y1="20" x2="443" y2="262" stroke="rgba(255,196,107,.22)" stroke-dasharray="3 5"/>
+        <text x="449" y="34" font-family="DM Mono" font-size="7" fill="#7fa894">PASS 0.70</text>
+        <g id="dots"></g>
+        <text x="52" y="284" font-family="DM Mono" font-size="7" fill="#7fa894">0.0</text>
+        <text x="598" y="284" font-family="DM Mono" font-size="7" fill="#7fa894">1.0</text>
+        <text x="14" y="258" font-family="DM Mono" font-size="7" fill="#7fa894" transform="rotate(-90 14 258)">0.4</text>
+        <text x="14" y="30" font-family="DM Mono" font-size="7" fill="#7fa894" transform="rotate(-90 14 30)">1.0</text>
+      </svg>
+    </div>
+
+    <div class="cases glass">
+      <div class="cases-head"><span>LOWEST BLOOMS / 5 OF 128</span><b>2 FAIL · 7 WARN</b></div>
+      <table>
+        <thead><tr><th>CASE</th><th>QUESTION</th><th>HIT</th><th>CTX P</th><th>FAITH</th><th>REL</th><th></th></tr></thead>
+        <tbody>
+          <tr><td class="num">#G-114</td><td>它在上一次回答里说的 k 值是多少？</td><td class="num">0.00</td><td class="num">0.41</td><td class="num">0.62</td><td class="num">0.55</td><td><span class="pill fail">FAIL</span></td></tr>
+          <tr><td class="num">#G-098</td><td>2024 Q4 的 rerank 延迟预算与线上一致吗？</td><td class="num">1.00</td><td class="num">0.58</td><td class="num">0.88</td><td class="num">0.79</td><td><span class="pill warn">WARN</span></td></tr>
+          <tr><td class="num">#G-072</td><td>冲突证据最终以哪个分数为准？</td><td class="num">1.00</td><td class="num">0.92</td><td class="num">0.96</td><td class="num">0.94</td><td><span class="pill pass">PASS</span></td></tr>
+          <tr><td class="num">#G-061</td><td>退换货超过 15 天还能赔付吗？</td><td class="num">1.00</td><td class="num">0.74</td><td class="num">0.91</td><td class="num">0.90</td><td><span class="pill pass">PASS</span></td></tr>
+          <tr><td class="num">#G-043</td><td>bge-m3 的向量维度是多少？</td><td class="num">1.00</td><td class="num">0.97</td><td class="num">0.98</td><td class="num">0.97</td><td><span class="pill pass">PASS</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<footer class="base">
+  <span><b>TRACE //</b> SIGNAL GARDEN</span>
+  <span>BIOSPHERE 07 · DAY 128</span>
+  <span class="live">SYNCED</span>
+  <div class="right">
+    <span>SOIL pH 7.2</span>
+    <span>BGE-M3 · RRF-60</span>
+    <span>GROWTH <b>0.839</b></span>
+  </div>
+</footer>
+
+<script>
+(() => {
+  /* ---------- pixel landscape ---------- */
+  const cv = document.getElementById('world');
+  const ctx = cv.getContext('2d');
+  const W = 480, H = 300;
+  const px = (x, y, c, w = 1, h = 1) => { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); };
+
+  const sky = ctx.createLinearGradient(0, 0, 0, H);
+  sky.addColorStop(0, '#04120f');
+  sky.addColorStop(.55, '#072019');
+  sky.addColorStop(1, '#0b2e23');
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
+
+  /* stars */
+  for (let i = 0; i < 120; i++){
+    const x = Math.floor(Math.random() * W), y = Math.floor(Math.random() * 150);
+    const c = Math.random() > .82 ? '#d9ff6a' : 'rgba(190,255,215,' + (0.18 + Math.random() * .5) + ')';
+    px(x, y, c);
+  }
+
+  /* no moon: the layout panels cover most of the sky, and a partial disc reads as noise */
+
+  /* layered hills */
+  const hill = (base, amp, freq, color) => {
+    for (let x = 0; x < W; x += 2){
+      const y = base + Math.sin(x * freq) * amp + Math.sin(x * freq * 2.7 + 1.4) * amp * .45;
+      px(x, Math.floor(y), color, 2, H - y);
+    }
+  };
+  hill(196, 12, .017, '#0a2a20');
+  hill(224, 16, .013, '#071c16');
+  hill(258, 10, .022, '#04120e');
+
+  /* pixel trees on the far ridge */
+  const tree = (x, y, s = 1, c = '#06170f', tip = '#2ee6c0') => {
+    px(x, y - 12 * s, c, 2 * s, 12 * s);
+    for (let i = 0; i < 6; i++){
+      const w = (9 - i) * s;
+      px(x + s - Math.floor(w / 2), y - (13 + i) * s, c, w, s);
+    }
+    px(x, y - 19 * s, tip);
+  };
+  tree(56, 202, 1.6);
+  tree(72, 206, 1.2);
+  tree(410, 200, 1.4);
+  tree(426, 204, 1);
+  tree(330, 208, .9);
+
+  /* foreground grass */
+  for (let i = 0; i < 90; i++){
+    const x = Math.floor(Math.random() * W), y = 268 + Math.floor(Math.random() * 32);
+    px(x, y, 'rgba(46,230,192,.20)', 1, 2 + Math.floor(Math.random() * 3));
+  }
+
+  /* ---------- fireflies ---------- */
+  const flies = document.getElementById('flies');
+  for (let i = 0; i < 22; i++){
+    const f = document.createElement('i');
+    f.className = 'fly';
+    f.style.left = Math.random() * 100 + 'vw';
+    f.style.top = 30 + Math.random() * 62 + 'vh';
+    f.style.animationDuration = (12 + Math.random() * 18) + 's, ' + (2.4 + Math.random() * 2.8) + 's';
+    f.style.animationDelay = (-Math.random() * 20) + 's, ' + (-Math.random() * 3) + 's';
+    f.style.opacity = .25 + Math.random() * .6;
+    flies.appendChild(f);
+  }
+
+  /* ---------- pixel maps (tiny sprites) ---------- */
+  function sprite(el, rows, palette, scale = 3){
+    const w = rows[0].length, h = rows.length;
+    let body = '';
+    rows.forEach((row, y) => [...row].forEach((ch, x) => {
+      if (palette[ch]) body += `<rect x="${x * scale}" y="${y * scale}" width="${scale}" height="${scale}" fill="${palette[ch]}"/>`;
+    }));
+    el.innerHTML = `<svg width="${w * scale}" height="${h * scale}" viewBox="0 0 ${w * scale} ${h * scale}" shape-rendering="crispEdges">${body}</svg>`;
+  }
+  document.querySelectorAll('[data-sprite]').forEach(el => {
+    sprite(el, ['..1..', '.111.', '..1..', '..2..', '.222.'], { '1': '#d9ff6a', '2': '#8dffb8' }, 3);
+  });
+
+  /* ---------- view switching ---------- */
+  const views = [...document.querySelectorAll('.view')];
+  const triggers = [...document.querySelectorAll('[data-view]')];
+  function setView(name){
+    views.forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
+    triggers.forEach(t => {
+      const on = t.dataset.view === name;
+      if (t.classList.contains('nav') || t.parentElement.classList.contains('nav')) t.classList.toggle('on', on);
+      if (t.classList.contains('ico')) t.classList.toggle('on', on);
+    });
+    if (name === 'bloom') animateBloom();
+  }
+  triggers.forEach(t => t.addEventListener('click', () => setView(t.dataset.view)));
+  const deep = new URLSearchParams(location.search).get('view');
+  if (['canopy','vault','bloom'].includes(deep)) setView(deep);
+
+  /* ---------- case constellation ---------- */
+  const dots = document.getElementById('dots');
+  /* deterministic PRNG so every screenshot shows the same constellation */
+  let seed = 20261126;
+  const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+  for (let i = 0; i < 128; i++){
+    let score, faith, cls = 'dot-pass';
+    if (i < 2){                 // 2 failures: weak retrieval, weak grounding
+      score = .24 + rnd() * .18; faith = .44 + rnd() * .14; cls = 'dot-fail';
+    } else if (i < 9){          // 7 warnings: near the pass line
+      score = .55 + rnd() * .14; faith = .52 + rnd() * .30; cls = 'dot-warn';
+    } else {                    // 119 passes
+      score = Math.min(.995, .70 + rnd() * .29);
+      faith = .60 + rnd() * .39;
+    }
+    const cx = 44 + score * 570;
+    /* y-axis is zoomed to 0.40–1.00 so the passing cloud is not squeezed into a strip */
+    const cy = 262 - ((faith - .40) / .60) * 236;
+    dots.insertAdjacentHTML('beforeend',
+      `<circle class="${cls}" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${i % 7 === 0 ? 3.2 : 2.2}"/>`);
+  }
+
+  /* ---------- bloom animations ---------- */
+  function animateBloom(){
+    document.querySelectorAll('#bigRings .barc').forEach((c, i) => {
+      const final = c.dataset.final;
+      c.style.transition = 'none';
+      c.style.strokeDashoffset = c.getAttribute('stroke-dasharray');
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        c.style.transition = 'stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1)';
+        c.style.transitionDelay = (i * 90) + 'ms';
+        c.style.strokeDashoffset = final;
+      }));
+    });
+    const svg = document.getElementById('scatter');
+    svg.style.opacity = 0;
+    requestAnimationFrame(() => {
+      svg.style.transition = 'opacity .8s ease';
+      svg.style.opacity = 1;
+    });
+  }
+  if (document.getElementById('view-bloom').classList.contains('active')) animateBloom();
+
+  /* ---------- decorative typewriter ---------- */
+  const field = document.querySelector('.composer .field span');
+  const phrase = '种下一个问题，等它长出答案…';
+  let n = 0;
+  (function type(){
+    /* keep the caret as the second span */
+    field.textContent = phrase.slice(0, n);
+    n = n >= phrase.length ? 0 : n + 1;
+    setTimeout(type, n === 0 ? 3200 : 110);
+  })();
+})();
+</script>
+</body>
+</html>

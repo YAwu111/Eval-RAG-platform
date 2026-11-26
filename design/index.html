@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TRACE // — Four Directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Archivo:wght@400;500;600;800&family=IBM+Plex+Mono:wght@300;400;500&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   TRACE // — concept gallery.
+   Deliberately neutral paper so the four directions do the talking.
+   ============================================================ */
+:root{
+  --paper:#f1ede2;
+  --card:#fbf8f0;
+  --ink:#15130d;
+  --muted:#6f6a5b;
+  --rule:#d6d0c0;
+  --red:#d93a1b;
+  --blue:#1f3bc4;
+  --serif:'Instrument Serif',Georgia,serif;
+  --sans:'Archivo','Noto Sans SC',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--paper);color:var(--ink)}
+body{font-family:var(--sans);font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+::selection{background:var(--ink);color:var(--paper)}
+
+.wrap{max-width:1520px;margin:0 auto;padding:0 34px}
+
+/* ---------- masthead ---------- */
+.mast{display:flex;align-items:flex-end;justify-content:space-between;padding:26px 0 14px;border-bottom:1.5px solid var(--ink)}
+.brand{display:flex;align-items:baseline;gap:14px}
+.brand h1{font-family:var(--sans);font-weight:800;font-size:22px;letter-spacing:-.02em;line-height:1}
+.brand h1 span{color:var(--red)}
+.brand p{font-family:var(--mono);font-size:9px;letter-spacing:.3em;color:var(--muted);text-transform:uppercase}
+.mast .meta{font-family:var(--mono);font-size:9px;letter-spacing:.16em;color:var(--muted);text-align:right}
+.mast .meta b{color:var(--ink);font-weight:500}
+
+/* ---------- hero ---------- */
+.hero{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr);gap:40px;align-items:end;padding:46px 0 40px;border-bottom:1px solid var(--rule)}
+.hero .k{font-family:var(--mono);font-size:10px;letter-spacing:.28em;color:var(--red);margin-bottom:14px}
+.hero h2{font-family:var(--serif);font-size:clamp(56px,7.2vw,104px);font-weight:400;line-height:.84;letter-spacing:-.02em}
+.hero h2 em{font-style:italic;color:var(--red)}
+.hero .lead{font-size:15px;line-height:1.85;color:#39352a;max-width:460px}
+.hero .lead b{font-weight:600}
+.hero .lead .note{display:block;margin-top:18px;font-family:var(--mono);font-size:10px;line-height:1.9;letter-spacing:.04em;color:var(--muted);border-top:1px solid var(--rule);padding-top:12px}
+.hero .lead .note span{color:var(--red)}
+
+/* ---------- concept grid ---------- */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:26px;padding:32px 0 10px}
+.card{background:var(--card);border:1.5px solid var(--ink);display:flex;flex-direction:column;transition:.25s ease}
+.card:hover{transform:translateY(-5px);box-shadow:0 22px 50px -30px rgba(20,15,5,.55)}
+.shot{position:relative;border-bottom:1.5px solid var(--ink);overflow:hidden;background:#0b0714}
+.shot img{width:100%;aspect-ratio:16/10;object-fit:cover;object-position:top center;transition:transform .6s cubic-bezier(.2,.8,.2,1)}
+.card:hover .shot img{transform:scale(1.025)}
+.shot .no{position:absolute;left:12px;top:10px;font-family:var(--mono);font-size:9px;letter-spacing:.18em;background:var(--paper);border:1px solid var(--ink);padding:3px 7px}
+.shot .open{position:absolute;right:10px;bottom:10px;font-family:var(--mono);font-size:9px;letter-spacing:.14em;background:var(--ink);color:var(--paper);padding:6px 10px;display:flex;gap:8px;align-items:center}
+.card:hover .open{background:var(--red)}
+.body{padding:20px 22px 18px;display:flex;flex-direction:column;flex:1}
+.title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+.card h3{font-family:var(--sans);font-size:25px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.card .cn{font-family:var(--sans);font-size:12px;color:var(--muted);margin-top:6px;letter-spacing:.04em}
+.card .desc{font-size:13px;line-height:1.8;color:#3f3a2d;margin-top:14px;max-width:520px}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}
+.tags span{font-family:var(--mono);font-size:8.5px;letter-spacing:.08em;border:1px solid var(--rule);padding:3px 7px;color:#4a4538}
+.palette{display:flex;gap:4px;flex:none}
+.palette i{width:15px;height:15px;border:1px solid rgba(0,0,0,.22)}
+.card-foot{margin-top:18px;padding-top:12px;border-top:1px solid var(--rule);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.card-foot .links{display:flex;gap:14px}
+.card-foot a{font-family:var(--mono);font-size:9px;letter-spacing:.1em;border-bottom:1px solid var(--ink);padding-bottom:2px}
+.card-foot a:hover{color:var(--red);border-color:var(--red)}
+.card-foot .idx{font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--muted)}
+
+/* ---------- compare ---------- */
+.section{padding:56px 0 30px;border-top:1.5px solid var(--ink);margin-top:54px}
+.section-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px;gap:24px}
+.section-head h3{font-family:var(--serif);font-size:44px;font-weight:400;line-height:1}
+.section-head h3 em{font-style:italic;color:var(--red)}
+.section-head p{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--muted);max-width:420px;text-align:right}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{border-bottom:1px solid var(--rule);padding:12px 12px;text-align:left;vertical-align:top}
+th{font-family:var(--mono);font-size:9px;letter-spacing:.14em;font-weight:500;color:var(--muted);text-transform:uppercase}
+td:first-child{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;color:var(--muted);width:190px}
+td b{font-weight:600}
+.dots{font-family:var(--mono);letter-spacing:2px;color:var(--red);white-space:nowrap}
+.dots span{color:#c9c2b1}
+
+/* ---------- guide ---------- */
+.guide{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;padding:14px 0 40px}
+.guide .g{border-top:1px solid var(--ink);padding-top:14px}
+.guide .g .n{font-family:var(--mono);font-size:9px;letter-spacing:.16em;color:var(--red)}
+.guide .g h4{font-size:15px;font-weight:600;margin:8px 0 6px}
+.guide .g p{font-size:12px;line-height:1.8;color:#4a4538}
+.guide .g em{font-style:normal;color:var(--red)}
+
+.note{display:grid;grid-template-columns:1fr 1.4fr;gap:40px;border-top:1.5px solid var(--ink);padding:30px 0 50px}
+.note h3{font-family:var(--serif);font-size:34px;font-weight:400;line-height:1.05}
+.note h3 em{font-style:italic;color:var(--red)}
+.note .txt{font-size:13px;line-height:1.95;color:#3f3a2d}
+.note .txt b{font-weight:600}
+.note .txt .sig{display:block;margin-top:16px;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;color:var(--muted)}
+.foot{border-top:1px solid var(--rule);padding:14px 0 30px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--muted)}
+.foot b{color:var(--ink)}
+
+@media (max-width:1000px){
+  .hero{grid-template-columns:1fr;gap:24px}
+  .grid{grid-template-columns:1fr}
+  .guide{grid-template-columns:1fr 1fr}
+  .note{grid-template-columns:1fr}
+  .wrap{padding:0 20px}
+}
+</style>
+</head>
+<body>
+
+<header class="mast wrap">
+  <div class="brand">
+    <h1>TRACE <span>//</span></h1>
+    <p>RAG EVAL WORKBENCH · CONCEPT SELECTION</p>
+  </div>
+  <div class="meta">4 DIRECTIONS<br><b>2026 / 11 / 26</b></div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <div>
+      <div class="k">ARCHIVE / SELECTED A</div>
+      <h2>Four<br><em>directions.</em></h2>
+    </div>
+    <div class="lead">
+      <p>同一个产品内核——<b>知识对话 + 检索追踪 + 评测分数</b>——被拆成四种完全不同的视觉世界。它们不是配色方案，而是四套关于“评测应该看起来像什么”的立场。</p>
+      <p class="note">每一版都是可交互的 HTML 原型：三个视图、真实数据密度、动效与深层链接。<br>方向已选定 <span>A · KERNEL ARCADE</span>；本页保留为选型档案，供后续对照。</p>
+    </div>
+  </section>
+
+  <section class="grid">
+    <!-- A -->
+    <article class="card">
+      <div class="shot">
+        <img src="screenshots/a-desktop-2.png" alt="KERNEL ARCADE 桌面端">
+        <span class="no">01 / A · SELECTED</span>
+        <a class="open" href="concept-a.html">OPEN CONCEPT <span>↗</span></a>
+      </div>
+      <div class="body">
+        <div class="title-row">
+          <div>
+            <h3>KERNEL ARCADE</h3>
+            <div class="cn">8-BIT 霓虹实验室 / 像素与代码雨</div>
+          </div>
+          <div class="palette">
+            <i style="background:#c8ff3d"></i><i style="background:#ff3d9a"></i><i style="background:#38e8ff"></i><i style="background:#07070c"></i>
+          </div>
+        </div>
+        <p class="desc">把 RAG 管线做成一台街机：CRT 扫描线、代码雨、会眨眼的小怪物、方形像素数字。检索阶段像游戏关卡一样逐段点亮，评测分数是计分板。</p>
+        <div class="tags"><span>PIXEL</span><span>TERMINAL</span><span>HIGH ENERGY</span><span>DARK</span></div>
+        <div class="card-foot">
+          <div class="links">
+            <a href="concept-a.html">对话</a>
+            <a href="concept-a.html?view=corpus">知识库</a>
+            <a href="concept-a.html?view=eval">评测</a>
+          </div>
+          <span class="idx">A / 01</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- B -->
+    <article class="card">
+      <div class="shot">
+        <img src="screenshots/b-transcript.png" alt="GROUNDTRUTH 对话记录">
+        <span class="no">02 / B</span>
+        <a class="open" href="concept-b.html">OPEN CONCEPT <span>↗</span></a>
+      </div>
+      <div class="body">
+        <div class="title-row">
+          <div>
+            <h3>GROUNDTRUTH</h3>
+            <div class="cn">计量仪器 / 纸质档案与证物编号</div>
+          </div>
+          <div class="palette">
+            <i style="background:#f2efe4"></i><i style="background:#17140d"></i><i style="background:#dc3a1b"></i><i style="background:#1e34c0"></i>
+          </div>
+        </div>
+        <p class="desc">把问答记录做成一份可归档的证词：Q.01 / A.02 编号、EXHIBIT INDEX、骑缝章、校准仪表盘。评测不是装饰，而是下一次改配置的依据。</p>
+        <div class="tags"><span>EDITORIAL</span><span>METROLOGY</span><span>PRINT</span><span>LIGHT</span></div>
+        <div class="card-foot">
+          <div class="links">
+            <a href="concept-b.html">对话</a>
+            <a href="concept-b.html?view=specimens">知识库</a>
+            <a href="concept-b.html?view=instrument">评测</a>
+          </div>
+          <span class="idx">B / 02</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- C -->
+    <article class="card">
+      <div class="shot">
+        <img src="screenshots/c-canopy.png" alt="SIGNAL GARDEN 冠层对话">
+        <span class="no">03 / C</span>
+        <a class="open" href="concept-c.html">OPEN CONCEPT <span>↗</span></a>
+      </div>
+      <div class="body">
+        <div class="title-row">
+          <div>
+            <h3>SIGNAL GARDEN</h3>
+            <div class="cn">知识生物圈 / 像素风景与菌丝网络</div>
+          </div>
+          <div class="palette">
+            <i style="background:#03100c"></i><i style="background:#8dffb8"></i><i style="background:#d9ff6a"></i><i style="background:#ff7a6b"></i>
+          </div>
+        </div>
+        <p class="desc">文档是种子，上下文是土壤，评测是花期。低分辨率像素山丘、萤火虫、根系追踪、同心开花环——把抽象指标翻译成生长与凋零。</p>
+        <div class="tags"><span>ORGANIC</span><span>PIXEL LANDSCAPE</span><span>SLOW MOTION</span><span>DARK</span></div>
+        <div class="card-foot">
+          <div class="links">
+            <a href="concept-c.html">对话</a>
+            <a href="concept-c.html?view=vault">知识库</a>
+            <a href="concept-c.html?view=bloom">评测</a>
+          </div>
+          <span class="idx">C / 03</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- D -->
+    <article class="card">
+      <div class="shot">
+        <img src="screenshots/d-broadcast.png" alt="CHROMA//DECK 直播台">
+        <span class="no">04 / D</span>
+        <a class="open" href="concept-d.html">OPEN CONCEPT <span>↗</span></a>
+      </div>
+      <div class="body">
+        <div class="title-row">
+          <div>
+            <h3>CHROMA//DECK</h3>
+            <div class="cn">Y2K 广播台 / 多画面监视器与字幕条</div>
+          </div>
+          <div class="palette">
+            <i style="background:#06030d"></i><i style="background:#ff3ea5"></i><i style="background:#3cf2ff"></i><i style="background:#d9ff3e"></i>
+          </div>
+        </div>
+        <p class="desc">把评测直播化：节目监视器、四路多画面、ON AIR 灯、下三分之一字幕条、黑胶唱片评分与 128 格评分墙。数据密度最高，也最像“正在发生”。</p>
+        <div class="tags"><span>Y2K</span><span>BROADCAST</span><span>CHROME</span><span>HIGH DENSITY</span></div>
+        <div class="card-foot">
+          <div class="links">
+            <a href="concept-d.html">对话</a>
+            <a href="concept-d.html?view=library">知识库</a>
+            <a href="concept-d.html?view=ratings">评测</a>
+          </div>
+          <span class="idx">D / 04</span>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h3>Side by <em>side.</em></h3>
+      <p>不是“哪个更好看”，而是“哪个更适合你的使用场景”。</p>
+    </div>
+    <table>
+      <thead>
+        <tr><th>维度</th><th>A · KERNEL ARCADE</th><th>B · GROUNDTRUTH</th><th>C · SIGNAL GARDEN</th><th>D · CHROMA//DECK</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>气质</td><td>街机 / 开发者</td><td>实验室 / 审计</td><td>生物圈 / 叙事</td><td>广播台 / 秀场</td></tr>
+        <tr><td>信息密度</td><td><span class="dots">●●●<span>●●</span></span></td><td><span class="dots">●●●●<span>●</span></span></td><td><span class="dots">●●<span>●●●</span></span></td><td><span class="dots">●●●●●</span></td></tr>
+        <tr><td>动效强度</td><td><span class="dots">●●●●<span>●</span></span></td><td><span class="dots">●●<span>●●●</span></span></td><td><span class="dots">●●●<span>●●</span></span></td><td><span class="dots">●●●●<span>●</span></span></td></tr>
+        <tr><td>中文排版</td><td>像素标题 + 等宽正文，个性强</td><td>衬线标题 + 档案正文，最稳</td><td>软衬线 + 像素数字，最柔</td><td>超宽标题 + 等宽数据，最潮</td></tr>
+        <tr><td>实现成本</td><td>中：canvas 背景 + 像素组件</td><td>低：CSS 纸张纹理 + SVG 仪表</td><td>高：低分辨率 canvas 场景 + SVG 根系</td><td>中高：多画面布局 + 评分墙</td></tr>
+        <tr><td>最适合</td><td>作品集、黑客松、开发者工具</td><td>企业内训、合规、评估报告</td><td>品牌官网、内容型产品</td><td>实时监控、Demo Day、数据直播</td></tr>
+        <tr><td>风险</td><td>长时间阅读偏累</td><td>个性相对克制</td><td>数据密集时层级会被风景稀释</td><td>元素多，小屏需要重排</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="guide">
+    <div class="g"><div class="n">01 / IF YOU WANT ATTENTION</div><h4>选 A</h4><p>第一眼最抓人。代码雨 + 街机计分板能把“RAG 检索”讲成一场游戏，适合演示与作品集。<em>代价是长时间阅读。</em></p></div>
+    <div class="g"><div class="n">02 / IF YOU WANT TRUST</div><h4>选 B</h4><p>最像一份可以盖章的评测报告。纸质档案、证物编号与仪表盘让分数有“可复现”的重量。<em>最稳妥的企业选择。</em></p></div>
+    <div class="g"><div class="n">03 / IF YOU WANT MEMORY</div><h4>选 C</h4><p>“种子—土壤—花期”是四版里唯一有完整隐喻的。它让评测有了情绪，但实现成本最高，数据层级要额外克制。</p></div>
+    <div class="g"><div class="n">04 / IF YOU WANT SPECTACLE</div><h4>选 D</h4><p>把评测做成直播：多画面、字幕条、评分墙。信息密度与“正在发生”的感觉最强，适合大屏与实时演示。</p></div>
+  </section>
+
+  <section class="note">
+    <h3>My <em>read.</em></h3>
+    <div class="txt">
+      <p>如果目标是一份<b>能让人停下来的作品集项目</b>，A 的辨识度最高；如果目标是<b>一个可信的企业级评测产品</b>，B 的语言最完整——它甚至已经回答了“评测结果如何被归档、被引用、被复核”。D 最适合把“评估系统”做成一块可以放在大屏上的实时面板，C 则最适合讲品牌故事。</p>
+      <p>最终选定 <b>A · KERNEL ARCADE</b>：它的辨识度和“检索关卡”叙事最适合这个项目。落地时会借鉴 B 的信息结构（证据索引、用例台账、可复核的数字层级），但不混搭 B 的纸质视觉；像素计分牌保留为 A 的记忆点。</p>
+      <span class="sig">— 方向已定：A。下一步：React + Zustand + shadcn/ui 组件化，FastAPI + PostgreSQL 真数据接入。</span>
+    </div>
+  </section>
+</main>
+
+<footer class="foot wrap">
+  <span><b>TRACE //</b> RAG EVAL WORKBENCH</span>
+  <span>4 CONCEPTS · 12 VIEWS · 1 DECISION</span>
+  <span>PAPER / 2026</span>
+</footer>
+
+</body>
+</html>
